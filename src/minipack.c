@@ -106,22 +106,42 @@
 
 
 //--------------------------------------
-// Raw bytes
+// Strings
 //--------------------------------------
 
-#define FIXRAW_TYPE             0xA0
-#define FIXRAW_TYPE_MASK        0xE0
-#define FIXRAW_VALUE_MASK       0x1F
-#define FIXRAW_SIZE             1
-#define FIXRAW_MAXSIZE          31
+#define FIXSTR_TYPE             0xA0
+#define FIXSTR_TYPE_MASK        0xE0
+#define FIXSTR_VALUE_MASK       0x1F
+#define FIXSTR_SIZE             1
+#define FIXSTR_MAXSIZE          31
 
-#define RAW16_TYPE              0xDA
-#define RAW16_SIZE              3
-#define RAW16_MAXSIZE           65535
+#define STR8_TYPE               0xD9
+#define STR8_SIZE               2
+#define STR8_MAXSIZE            255
 
-#define RAW32_TYPE              0xDB
-#define RAW32_SIZE              5
-#define RAW32_MAXSIZE           4294967295
+#define STR16_TYPE              0xDA
+#define STR16_SIZE              3
+#define STR16_MAXSIZE           65535
+
+#define STR32_TYPE              0xDB
+#define STR32_SIZE              5
+#define STR32_MAXSIZE           4294967295
+
+//--------------------------------------
+// Bin
+//--------------------------------------
+
+#define BIN8_TYPE               0xC4
+#define BIN8_SIZE               2
+#define BIN8_MAXSIZE            255
+
+#define BIN16_TYPE              0xC5
+#define BIN16_SIZE              3
+#define BIN16_MAXSIZE           65535
+
+#define BIN32_TYPE              0xC6
+#define BIN32_SIZE              5
+#define BIN32_MAXSIZE           4294967295
 
 
 //--------------------------------------
@@ -220,8 +240,12 @@ size_t minipack_sizeof_elem_and_data(void *ptr)
     if(minipack_is_nil(ptr)) return minipack_sizeof_nil();
     if(minipack_is_bool(ptr)) return minipack_sizeof_bool();
 
-    // Raw
-    uint32_t length = minipack_unpack_raw(ptr, &sz);
+    // Binary
+    uint32_t length = minipack_unpack_bin(ptr, &sz);
+    if(sz > 0) return sz + length;
+    
+    // String
+    length = minipack_unpack_str(ptr, &sz);
     if(sz > 0) return sz + length;
 
     // Map, Array and other data returns 0.
@@ -1433,39 +1457,38 @@ int minipack_fwrite_double(FILE *file, double value, size_t *sz)
 
 //==============================================================================
 //
-// Raw Bytes
+// Strings
 //
 //==============================================================================
 
-//--------------------------------------
-// Raw bytes
-//--------------------------------------
-
-// Checks if an element is raw bytes.
+// Checks if an element is a str type.
 //
 // ptr - A pointer to the element.
 //
-// Returns true if the element is raw bytes, otherwise returns false.
-bool minipack_is_raw(void *ptr)
+// Returns true if the element is str bytes, otherwise returns false.
+bool minipack_is_str(void *ptr)
 {
-    return minipack_is_fixraw(ptr) || minipack_is_raw16(ptr) || minipack_is_raw32(ptr);
+    return minipack_is_fixstr(ptr) || minipack_is_str8(ptr) || minipack_is_str16(ptr) || minipack_is_str32(ptr);
 }
 
 // Retrieves the size, in bytes, of how large an element header will be.
 //
-// length - The length of the raw bytes.
+// length - The length of the str bytes.
 //
 // Returns the number of bytes needed for the header.
-size_t minipack_sizeof_raw(uint32_t length)
+size_t minipack_sizeof_str(uint32_t length)
 {
-    if(length <= FIXRAW_MAXSIZE) {
-        return FIXRAW_SIZE;
+    if(length <= FIXSTR_MAXSIZE) {
+        return FIXSTR_SIZE;
     }
-    else if(length <= RAW16_MAXSIZE) {
-        return RAW16_SIZE;
+    else if(length <= STR8_MAXSIZE) {
+        return STR8_SIZE;
+    }
+    else if(length <= STR16_MAXSIZE) {
+        return STR16_SIZE;
     }
 
-    return RAW32_SIZE;
+    return STR32_SIZE;
 }
 
 // Retrieves the size, in bytes, of how large the element at the given address
@@ -1474,38 +1497,44 @@ size_t minipack_sizeof_raw(uint32_t length)
 // ptr - A pointer where the element is.
 //
 // Returns the number of bytes needed for the element.
-size_t minipack_sizeof_raw_elem(void *ptr)
+size_t minipack_sizeof_str_elem(void *ptr)
 {
-    if(minipack_is_fixraw(ptr)) {
-        return FIXRAW_SIZE;
+    if(minipack_is_fixstr(ptr)) {
+        return FIXSTR_SIZE;
     }
-    else if(minipack_is_raw16(ptr)) {
-        return RAW16_SIZE;
+    else if(minipack_is_str8(ptr)) {
+        return STR8_SIZE;
     }
-    else if(minipack_is_raw32(ptr)) {
-        return RAW32_SIZE;
+    else if(minipack_is_str16(ptr)) {
+        return STR16_SIZE;
+    }
+    else if(minipack_is_str32(ptr)) {
+        return STR32_SIZE;
     }
     else {
         return 0;
     }
 }
 
-// Reads the header for raw bytes from a given memory address.
+// Reads the header for str bytes from a given memory address.
 //
 // ptr - A pointer to where the unsigned int should be read from.
 // sz  - A pointer to where the size of the header will be returned to.
 //
-// Returns the number of bytes in the raw bytes.
-uint32_t minipack_unpack_raw(void *ptr, size_t *sz)
+// Returns the number of bytes in the str bytes.
+uint32_t minipack_unpack_str(void *ptr, size_t *sz)
 {
-    if(minipack_is_fixraw(ptr)) {
-        return (uint32_t)minipack_unpack_fixraw(ptr, sz);
+    if(minipack_is_fixstr(ptr)) {
+        return (uint32_t)minipack_unpack_fixstr(ptr, sz);
     }
-    else if(minipack_is_raw16(ptr)) {
-        return (uint32_t)minipack_unpack_raw16(ptr, sz);
+    else if(minipack_is_str8(ptr)) {
+        return (uint32_t)minipack_unpack_str8(ptr, sz);
     }
-    else if(minipack_is_raw32(ptr)) {
-        return minipack_unpack_raw32(ptr, sz);
+    else if(minipack_is_str16(ptr)) {
+        return (uint32_t)minipack_unpack_str16(ptr, sz);
+    }
+    else if(minipack_is_str32(ptr)) {
+        return minipack_unpack_str32(ptr, sz);
     }
     else {
         *sz = 0;
@@ -1513,35 +1542,39 @@ uint32_t minipack_unpack_raw(void *ptr, size_t *sz)
     }
 }
 
-// Writes raw bytes to a given memory address.
+// Writes str bytes to a given memory address.
 //
 // ptr    - A pointer to where the integer should be written to.
 // length - The number of bytes to write.
 // sz     - A pointer to where the size of the header will be returned.
-void minipack_pack_raw(void *ptr, uint32_t length, size_t *sz)
+void minipack_pack_str(void *ptr, uint32_t length, size_t *sz)
 {
-    if(length <= FIXRAW_MAXSIZE) {
-        minipack_pack_fixraw(ptr, (uint8_t)length, sz);
+    if(length <= FIXSTR_MAXSIZE) {
+        minipack_pack_fixstr(ptr, (uint8_t)length, sz);
         return;
     }
-    else if(length <= RAW16_MAXSIZE) {
-        minipack_pack_raw16(ptr, (uint16_t)length, sz);
+    else if(length <= STR8_MAXSIZE) {
+        minipack_pack_str8(ptr, (uint8_t)length, sz);
         return;
     }
-    minipack_pack_raw32(ptr, length, sz);
+    else if(length <= STR16_MAXSIZE) {
+        minipack_pack_str16(ptr, (uint16_t)length, sz);
+        return;
+    }
+    minipack_pack_str32(ptr, length, sz);
 }
 
-// Reads and unpacks a raw bytes element from a file stream. If the element at
-// the current location is a raw bytes element then the sz is returned as 0.
+// Reads and unpacks a str bytes element from a file stream. If the element at
+// the current location is a str bytes element then the sz is returned as 0.
 //
 // file - The file stream.
 // sz   - The number of bytes read from the stream.
 //
-// Returns the length of the raw bytes from the file stream.
-uint32_t minipack_fread_raw(FILE *file, size_t *sz)
+// Returns the length of the str bytes from the file stream.
+uint32_t minipack_fread_str(FILE *file, size_t *sz)
 {
-    uint8_t data[RAW32_SIZE];
-
+    uint8_t data[STR32_SIZE];
+    
     // If first byte cannot be read then exit.
     if(fread(data, sizeof(uint8_t), 1, file) != 1) {
         *sz = 0;
@@ -1550,31 +1583,32 @@ uint32_t minipack_fread_raw(FILE *file, size_t *sz)
     ungetc(data[0], file);
 
     // Determine size of element based on type.
-    size_t elemsz = minipack_sizeof_raw_elem(data);
+    size_t elemsz = minipack_sizeof_str_elem(data);
 
-    // If element is not a raw or we can't read enough bytes then exit.
+    // If element is not a str or we can't read enough bytes then exit.
     if(elemsz == 0 || fread(data, elemsz, 1, file) != 1) {
         *sz = 0;
         return 0;
     }
 
     // Parse and return value.
-    return minipack_unpack_raw(data, sz);
+    return minipack_unpack_str(data, sz);
 }
 
-// Packs and writes a raw bytes element to a file stream.
+// Packs and writes a str bytes element to a file stream.
 //
 // file - The file stream.
 // sz   - The number of bytes written to the stream.
 //
 // Returns 0 if successful, otherwise returns -1.
-int minipack_fwrite_raw(FILE *file, uint32_t length, size_t *sz)
+int minipack_fwrite_str(FILE *file, uint32_t length, size_t *sz)
 {
-    uint8_t data[RAW32_SIZE];
+    uint8_t data[STR32_SIZE];
 
     // Pack the element.
-    minipack_pack_raw(data, length, sz);
 
+    minipack_pack_str(data, length, sz);
+    
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
@@ -1586,112 +1620,351 @@ int minipack_fwrite_raw(FILE *file, uint32_t length, size_t *sz)
 
 
 //--------------------------------------
-// Fix raw
+// Fix str
 //--------------------------------------
 
-// Checks if an element is a fixraw type.
+// Checks if an element is a fixstr type.
 //
 // ptr - A pointer to the element.
 //
-// Returns true if the element is a fixraw, otherwise returns false.
-bool minipack_is_fixraw(void *ptr)
+// Returns true if the element is a fixstr, otherwise returns false.
+bool minipack_is_fixstr(void *ptr)
 {
-    return (*((uint8_t*)ptr) & FIXRAW_TYPE_MASK) == FIXRAW_TYPE;
+    return (*((uint8_t*)ptr) & FIXSTR_TYPE_MASK) == FIXSTR_TYPE;
 }
 
-// Reads the number of bytes in a fix raw from a given memory address.
+// Reads the number of bytes in a fix str from a given memory address.
 //
-// ptr - A pointer to where the fix raw should be read from.
+// ptr - A pointer to where the fix str should be read from.
 //
 // Returns the length of the bytes.
-uint8_t minipack_unpack_fixraw(void *ptr, size_t *sz)
+uint8_t minipack_unpack_fixstr(void *ptr, size_t *sz)
 {
-    *sz = FIXRAW_SIZE;
-    return *((uint8_t*)ptr) & FIXRAW_VALUE_MASK;
+    *sz = FIXSTR_SIZE;
+    return *((uint8_t*)ptr) & FIXSTR_VALUE_MASK;
 }
 
-// Writes a fix raw byte array to a given memory address.
+// Writes a fix str byte array to a given memory address.
 //
 // ptr - A pointer to where the bytes should be written to.
-void minipack_pack_fixraw(void *ptr, uint8_t length, size_t *sz)
+void minipack_pack_fixstr(void *ptr, uint8_t length, size_t *sz)
 {
-    *sz = FIXRAW_SIZE;
-    *((uint8_t*)ptr) = (length & FIXRAW_VALUE_MASK) | FIXRAW_TYPE;
+    *sz = FIXSTR_SIZE;
+    *((uint8_t*)ptr) = (length & FIXSTR_VALUE_MASK) | FIXSTR_TYPE;
 }
 
-
 //--------------------------------------
-// Raw 16
+// Str 8
 //--------------------------------------
 
-// Checks if an element is a raw16 type.
+// Checks if an element is a str 8 type.
 //
 // ptr - A pointer to the element.
 //
-// Returns true if the element is a raw 16, otherwise returns false.
-bool minipack_is_raw16(void *ptr)
+// Returns true if the element is a str 8, otherwise returns false.
+bool minipack_is_str8(void *ptr)
 {
-    return (*((uint8_t*)ptr) == RAW16_TYPE);
+    return (*((uint8_t*)ptr) == STR8_TYPE);
 }
 
-// Reads the number of bytes in a raw 16 from a given memory address.
+// Reads the number of bytes in a str 8 from a given memory address.
 //
-// ptr - A pointer to where the raw 16 should be read from.
+// ptr - A pointer to where the str 8 should be read from.
 //
 // Returns the length of the bytes.
-uint16_t minipack_unpack_raw16(void *ptr, size_t *sz)
+uint8_t minipack_unpack_str8(void *ptr, size_t *sz)
 {
-    *sz = RAW16_SIZE;
+    *sz = STR8_SIZE;
+    return ntohs(*((uint8_t*)(ptr+1)));
+}
+
+// Writes a str 8 byte array to a given memory address.
+//
+// ptr - A pointer to where the bytes should be written to.
+void minipack_pack_str8(void *ptr, uint8_t length, size_t *sz)
+{
+    *sz = STR8_SIZE;
+    *((uint8_t*)ptr)      = STR8_TYPE;
+    *((uint8_t*)(ptr+1)) = htons(length);
+}
+
+
+//--------------------------------------
+// Str 16
+//--------------------------------------
+
+// Checks if an element is a str16 type.
+//
+// ptr - A pointer to the element.
+//
+// Returns true if the element is a str 16, otherwise returns false.
+bool minipack_is_str16(void *ptr)
+{
+    return (*((uint8_t*)ptr) == STR16_TYPE);
+}
+
+// Reads the number of bytes in a str 16 from a given memory address.
+//
+// ptr - A pointer to where the str 16 should be read from.
+//
+// Returns the length of the bytes.
+uint16_t minipack_unpack_str16(void *ptr, size_t *sz)
+{
+    *sz = STR16_SIZE;
     return ntohs(*((uint16_t*)(ptr+1)));
 }
 
-// Writes a raw 16 byte array to a given memory address.
+// Writes a str 16 byte array to a given memory address.
 //
 // ptr - A pointer to where the bytes should be written to.
-void minipack_pack_raw16(void *ptr, uint16_t length, size_t *sz)
+void minipack_pack_str16(void *ptr, uint16_t length, size_t *sz)
 {
-    *sz = RAW16_SIZE;
-    *((uint8_t*)ptr)      = RAW16_TYPE;
+    *sz = STR16_SIZE;
+    *((uint8_t*)ptr)      = STR16_TYPE;
     *((uint16_t*)(ptr+1)) = htons(length);
 }
 
 
 //--------------------------------------
-// Raw 32
+// Str 32
 //--------------------------------------
 
-// Checks if an element is a raw32 type.
+// Checks if an element is a str 32 type.
 //
 // ptr - A pointer to the element.
 //
-// Returns true if the element is a raw 32, otherwise returns false.
-bool minipack_is_raw32(void *ptr)
+// Returns true if the element is a str 32, otherwise returns false.
+bool minipack_is_str32(void *ptr)
 {
-    return (*((uint8_t*)ptr) == RAW32_TYPE);
+    return (*((uint8_t*)ptr) == STR32_TYPE);
 }
 
-// Reads the number of bytes in a raw 32 from a given memory address.
+// Reads the number of bytes in a str 32 from a given memory address.
 //
-// ptr - A pointer to where the raw 32 should be read from.
+// ptr - A pointer to where the str 32 should be read from.
 //
 // Returns the length of the bytes.
-uint32_t minipack_unpack_raw32(void *ptr, size_t *sz)
+uint32_t minipack_unpack_str32(void *ptr, size_t *sz)
 {
-    *sz = RAW32_SIZE;
+    *sz = STR32_SIZE;
     return ntohl(*((uint32_t*)(ptr+1)));
 }
 
-// Writes a raw 32 byte array to a given memory address.
+// Writes a str 32 byte array to a given memory address.
 //
 // ptr - A pointer to where the bytes should be written to.
-void minipack_pack_raw32(void *ptr, uint32_t length, size_t *sz)
+void minipack_pack_str32(void *ptr, uint32_t length, size_t *sz)
 {
-    *sz = RAW32_SIZE;
-    *((uint8_t*)ptr)      = RAW32_TYPE;
+    *sz = STR32_SIZE;
+    *((uint8_t*)ptr)      = STR32_TYPE;
     *((uint32_t*)(ptr+1)) = htonl(length);
 }
 
+//==============================================================================
+//
+// Bin
+//
+//==============================================================================
 
+//======================================
+// General
+//======================================
+
+// Checks if an element is bin.
+//
+// ptr - A pointer to the element.
+//
+// Returns true if the element is str bytes, otherwise returns false.
+bool minipack_is_bin(void *ptr)
+{
+    return minipack_is_bin8(ptr) || minipack_is_bin16(ptr) || minipack_is_bin32(ptr);
+}
+
+// Retrieves the size, in bytes, of how large an element header will be.
+//
+// length - The length of the str bytes.
+//
+// Returns the number of bytes needed for the header.
+size_t minipack_sizeof_bin(uint32_t length)
+{
+    if(length <= BIN8_MAXSIZE) {
+        return BIN8_SIZE;
+    }
+    else if(length <= BIN16_MAXSIZE) {
+        return BIN16_SIZE;
+    }
+    
+    return BIN32_SIZE;
+}
+
+// Retrieves the size, in bytes, of how large the element at the given address
+// will be.
+//
+// ptr - A pointer where the element is.
+//
+// Returns the number of bytes needed for the element.
+size_t minipack_sizeof_bin_elem(void *ptr)
+{
+    if(minipack_is_bin8(ptr)) {
+        return BIN8_SIZE;
+    }
+    else if(minipack_is_bin16(ptr)) {
+        return BIN16_SIZE;
+    }
+    else if(minipack_is_bin32(ptr)) {
+        return BIN32_SIZE;
+    }
+    else {
+        return 0;
+    }
+}
+
+// Reads the header for data bytes from a given memory address.
+//
+// ptr - A pointer to where the unsigned int should be read from.
+// sz  - A pointer to where the size of the header will be returned to.
+//
+// Returns the number of bytes in the data.
+uint32_t minipack_unpack_bin(void *ptr, size_t *sz)
+{
+    if(minipack_is_bin8(ptr)) {
+        return (uint32_t)minipack_unpack_bin8(ptr, sz);
+    }
+    else if(minipack_is_bin16(ptr)) {
+        return (uint32_t)minipack_unpack_bin16(ptr, sz);
+    }
+    else if(minipack_is_bin32(ptr)) {
+        return minipack_unpack_bin32(ptr, sz);
+    }
+    else {
+        *sz = 0;
+        return 0;
+    }
+}
+
+// Writes data bytes to a given memory address.
+//
+// ptr    - A pointer to where the integer should be written to.
+// length - The number of bytes to write.
+// sz     - A pointer to where the size of the header will be returned.
+void minipack_pack_bin(void *ptr, uint32_t length, size_t *sz)
+{
+    if(length <= BIN8_MAXSIZE) {
+        minipack_pack_bin8(ptr, (uint8_t)length, sz);
+        return;
+    }
+    else if(length <= BIN16_MAXSIZE) {
+        minipack_pack_bin16(ptr, (uint16_t)length, sz);
+        return;
+    }
+    minipack_pack_bin32(ptr, length, sz);
+}
+
+//======================================
+// Bin 8
+//======================================
+
+// Checks if an element is a bin8 type.
+//
+// ptr - A pointer to the element.
+//
+// Returns true if the element is a bin 8, otherwise returns false.
+bool minipack_is_bin8(void *ptr)
+{
+    return (*((uint8_t*)ptr) == BIN8_TYPE);
+}
+
+// Reads the number of bytes in a bin 8 from a given memory address.
+//
+// ptr - A pointer to where the bin 8 should be read from.
+//
+// Returns the length of the bytes.
+uint8_t minipack_unpack_bin8(void *ptr, size_t *sz)
+{
+    *sz = BIN8_SIZE;
+    return ntohs(*((uint8_t*)(ptr+1)));
+}
+
+// Writes a bin 8 byte array to a given memory address.
+//
+// ptr - A pointer to where the bytes should be written to.
+void minipack_pack_bin8(void *ptr, uint8_t length, size_t *sz)
+{
+    *sz = BIN8_SIZE;
+    *((uint8_t*)ptr)      = BIN8_TYPE;
+    *((uint8_t*)(ptr+1)) = htons(length);
+}
+
+//======================================
+// Bin 16
+//======================================
+
+// Checks if an element is a bin16 type.
+//
+// ptr - A pointer to the element.
+//
+// Returns true if the element is a bin 16, otherwise returns false.
+bool minipack_is_bin16(void *ptr)
+{
+    return (*((uint8_t*)ptr) == BIN16_TYPE);
+}
+
+// Reads the number of bytes in a bin 8 from a given memory address.
+//
+// ptr - A pointer to where the bin 8 should be read from.
+//
+// Returns the length of the bytes.
+uint16_t minipack_unpack_bin16(void *ptr, size_t *sz)
+{
+    *sz = BIN16_SIZE;
+    return ntohs(*((uint16_t*)(ptr+1)));
+}
+
+// Writes a bin 16 byte array to a given memory address.
+//
+// ptr - A pointer to where the bytes should be written to.
+
+void minipack_pack_bin16(void *ptr, uint16_t length, size_t *sz)
+{
+    *sz = BIN16_SIZE;
+    *((uint8_t*)ptr)      = BIN16_TYPE;
+    *((uint16_t*)(ptr+1)) = htons(length);
+}
+
+//======================================
+// Bin 32
+//======================================
+
+// Checks if an element is a bin32 type.
+//
+// ptr - A pointer to the element.
+//
+// Returns true if the element is a bin 32, otherwise returns false.
+bool minipack_is_bin32(void *ptr)
+{
+    return (*((uint8_t*)ptr) == BIN32_TYPE);
+}
+
+// Reads the number of bytes in a bin 32 from a given memory address.
+//
+// ptr - A pointer to where the bin 32 should be read from.
+//
+// Returns the length of the bytes.
+uint32_t minipack_unpack_bin32(void *ptr, size_t *sz)
+{
+    *sz = BIN32_SIZE;
+    return ntohl(*((uint32_t*)(ptr+1)));
+}
+
+// Writes a bin 32 byte array to a given memory address.
+//
+// ptr - A pointer to where the bytes should be written to.
+void minipack_pack_bin32(void *ptr, uint32_t length, size_t *sz)
+{
+    *sz = BIN32_SIZE;
+    *((uint8_t*)ptr)      = BIN32_TYPE;
+    *((uint32_t*)(ptr+1)) = htonl(length);
+}
 
 //==============================================================================
 //

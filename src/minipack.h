@@ -274,7 +274,7 @@ int minipack_fwrite_double(FILE *file, double value, size_t *sz);
 
 //==============================================================================
 //
-// Raw Bytes
+// Strings
 //
 //==============================================================================
 
@@ -282,53 +282,113 @@ int minipack_fwrite_double(FILE *file, double value, size_t *sz);
 // General
 //======================================
 
-bool minipack_is_raw(void *ptr);
+bool minipack_is_str(void *ptr);
 
-size_t minipack_sizeof_raw(uint32_t length);
+size_t minipack_sizeof_str(uint32_t length);
 
-size_t minipack_sizeof_raw_elem(void *ptr);
+size_t minipack_sizeof_str_elem(void *ptr);
 
-uint32_t minipack_unpack_raw(void *ptr, size_t *sz);
+uint32_t minipack_unpack_str(void *ptr, size_t *sz);
 
-void minipack_pack_raw(void *ptr, uint32_t length, size_t *sz);
+void minipack_pack_str(void *ptr, uint32_t length, size_t *sz);
 
-uint32_t minipack_fread_raw(FILE *file, size_t *sz);
+uint32_t minipack_fread_str(FILE *file, size_t *sz);
 
-int minipack_fwrite_raw(FILE *file, uint32_t length, size_t *sz);
-
-
-//======================================
-// Fix raw
-//======================================
-
-bool minipack_is_fixraw(void *ptr);
-
-uint8_t minipack_unpack_fixraw(void *ptr, size_t *sz);
-
-void minipack_pack_fixraw(void *ptr, uint8_t length, size_t *sz);
+int minipack_fwrite_str(FILE *file, uint32_t length, size_t *sz);
 
 
 //======================================
-// Raw 16
+// Fix str
 //======================================
 
-bool minipack_is_raw16(void *ptr);
+bool minipack_is_fixstr(void *ptr);
 
-uint16_t minipack_unpack_raw16(void *ptr, size_t *sz);
+uint8_t minipack_unpack_fixstr(void *ptr, size_t *sz);
 
-void minipack_pack_raw16(void *ptr, uint16_t length, size_t *sz);
+void minipack_pack_fixstr(void *ptr, uint8_t length, size_t *sz);
+
+//======================================
+// Str 8
+//======================================
+
+bool minipack_is_str8(void *ptr);
+
+uint8_t minipack_unpack_str8(void *ptr, size_t *sz);
+
+void minipack_pack_str8(void *ptr, uint8_t length, size_t *sz);
+
+//======================================
+// Str 16
+//======================================
+
+bool minipack_is_str16(void *ptr);
+
+uint16_t minipack_unpack_str16(void *ptr, size_t *sz);
+
+void minipack_pack_str16(void *ptr, uint16_t length, size_t *sz);
 
 
 //======================================
-// Raw 32
+// str 32
 //======================================
 
-bool minipack_is_raw32(void *ptr);
+bool minipack_is_str32(void *ptr);
 
-uint32_t minipack_unpack_raw32(void *ptr, size_t *sz);
+uint32_t minipack_unpack_str32(void *ptr, size_t *sz);
 
-void minipack_pack_raw32(void *ptr, uint32_t length, size_t *sz);
+void minipack_pack_str32(void *ptr, uint32_t length, size_t *sz);
 
+//==============================================================================
+//
+// Bin
+//
+//==============================================================================
+
+//======================================
+// General
+//======================================
+
+bool minipack_is_bin(void *ptr);
+
+size_t minipack_sizeof_bin(uint32_t length);
+
+size_t minipack_sizeof_bin_elem(void *ptr);
+
+uint32_t minipack_unpack_bin(void *ptr, size_t *sz);
+
+void minipack_pack_bin(void *ptr, uint32_t length, size_t *sz);
+
+//======================================
+// Bin 8
+//======================================
+
+bool minipack_is_bin8(void *ptr);
+
+uint8_t minipack_unpack_bin8(void *ptr, size_t *sz);
+
+void minipack_pack_bin8(void *ptr, uint8_t length, size_t *sz);
+
+
+//======================================
+// Bin 16
+//======================================
+
+bool minipack_is_bin16(void *ptr);
+
+uint16_t minipack_unpack_bin16(void *ptr, size_t *sz);
+
+void minipack_pack_bin16(void *ptr, uint16_t length, size_t *sz);
+
+
+//======================================
+// Bin 32
+//======================================
+
+bool minipack_is_bin32(void *ptr);
+
+uint32_t minipack_unpack_bin32(void *ptr, size_t *sz);
+
+void minipack_pack_bin32(void *ptr, uint32_t length, size_t *sz);
 
 
 //==============================================================================
