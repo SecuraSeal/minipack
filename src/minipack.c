@@ -174,6 +174,7 @@
 #if !defined(BYTE_ORDER) && !defined(__BYTE_ORDER)
 #error "Undefined byte order"
 #endif
+uint64_t bswap64(uint64_t value);
 
 uint64_t bswap64(uint64_t value)
 {
@@ -189,13 +190,6 @@ uint64_t bswap64(uint64_t value)
     );
 }
 
-#if (BYTE_ORDER == LITTLE_ENDIAN) || (__BYTE_ORDER == __LITTLE_ENDIAN)
-#define htonll(x) bswap64(x)
-#define ntohll(x) bswap64(x)
-#else
-#define htonll(x) x
-#define ntohll(x) x
-#endif
 
 
 //==============================================================================
@@ -291,6 +285,8 @@ void minipack_pack_pos_fixnum(void *ptr, uint8_t value, size_t *sz)
 // ptr - A pointer to the element.
 //
 // Returns true if the element is a negative fixnum, otherwise returns false.
+bool minipack_is_neg_fixnum(void *ptr);
+
 bool minipack_is_neg_fixnum(void *ptr)
 {
     return (*((uint8_t*)ptr) & NEG_FIXNUM_TYPE_MASK) == NEG_FIXNUM_TYPE;
@@ -1027,6 +1023,8 @@ void minipack_pack_int64(void *ptr, int64_t value, size_t *sz)
 // Retrieves the size, in bytes, of how large an element will be.
 //
 // Returns the number of bytes needed for the element.
+size_t minipack_sizeof_nil(void);
+
 size_t minipack_sizeof_nil()
 {
     return NIL_SIZE;
@@ -1118,6 +1116,7 @@ int minipack_fwrite_nil(FILE *file, size_t *sz)
 // Retrieves the size, in bytes, of how large an element will be.
 //
 // Returns the number of bytes needed for the element.
+size_t minipack_sizeof_bool(void);
 size_t minipack_sizeof_bool()
 {
     return BOOL_SIZE;
@@ -1246,6 +1245,7 @@ int minipack_fwrite_bool(FILE *file, bool value, size_t *sz)
 // Retrieves the size, in bytes, of how large an element will be.
 //
 // Returns the number of bytes needed for the element.
+size_t minipack_sizeof_float(void);
 size_t minipack_sizeof_float()
 {
     return FLOAT_SIZE;
@@ -1344,6 +1344,7 @@ int minipack_fwrite_float(FILE *file, float value, size_t *sz)
 // Retrieves the size, in bytes, of how large an element will be.
 //
 // Returns the number of bytes needed for the element.
+size_t minipack_sizeof_double(void);
 size_t minipack_sizeof_double()
 {
     return DOUBLE_SIZE;
