@@ -6,6 +6,9 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#define MSGPACK_VERSION_MAJOR    5
+#define MSGPACK_VERSION_MINOR    2
+
 
 //==============================================================================
 //
