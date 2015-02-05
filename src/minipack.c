@@ -1,7 +1,14 @@
+#ifdef LOCK_HW
+#include "common.h"
+#endif /* LOCK_HW */
+
 #include "minipack.h"
 #include <string.h>
+
+#ifndef LOCK_HW
 #include <sys/types.h>
 #include <arpa/inet.h>
+#endif /* !LOCK_HW */
 
 //==============================================================================
 //
@@ -155,6 +162,7 @@
 #define MAP32_MAXSIZE           4294967295
 
 
+#ifndef LOCK_HW
 //==============================================================================
 //
 // Byte Order
@@ -189,7 +197,7 @@ uint64_t bswap64(uint64_t value)
         ((value & 0xFF00000000000000) >> 56)
     );
 }
-
+#endif /* LOCK_HW */
 
 
 //==============================================================================
@@ -206,15 +214,15 @@ uint64_t bswap64(uint64_t value)
 size_t minipack_sizeof_elem_and_data(void *ptr)
 {
     size_t sz;
-    
+
     // Integer.
     sz = minipack_sizeof_int_elem(ptr);
     if(sz > 0) return sz;
-    
+
     // Unsigned Integer.
     sz = minipack_sizeof_uint_elem(ptr);
     if(sz > 0) return sz;
-    
+
     // Float & Double
     if(minipack_is_float(ptr)) return minipack_sizeof_float();
     if(minipack_is_double(ptr)) return minipack_sizeof_double();
@@ -226,7 +234,7 @@ size_t minipack_sizeof_elem_and_data(void *ptr)
     // Raw
     uint32_t length = minipack_unpack_raw(ptr, &sz);
     if(sz > 0) return sz + length;
-    
+
     // Map, Array and other data returns 0.
     return 0;
 }
@@ -447,7 +455,7 @@ void minipack_pack_uint(void *ptr, uint64_t value, size_t *sz)
 uint64_t minipack_fread_uint(FILE *file, size_t *sz)
 {
     uint8_t data[BUFFER_SIZE];
-    
+
     // If first byte cannot be read then exit.
     if(fread(data, sizeof(uint8_t), 1, file) != 1) {
         *sz = 0;
@@ -480,13 +488,13 @@ int minipack_fwrite_uint(FILE *file, uint64_t value, size_t *sz)
 
     // Pack the value.
     minipack_pack_uint(data, value, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -814,7 +822,7 @@ void minipack_pack_int(void *ptr, int64_t value, size_t *sz)
 int64_t minipack_fread_int(FILE *file, size_t *sz)
 {
     uint8_t data[BUFFER_SIZE];
-    
+
     // If first byte cannot be read then exit.
     if(fread(data, sizeof(uint8_t), 1, file) != 1) {
         *sz = 0;
@@ -847,13 +855,13 @@ int minipack_fwrite_int(FILE *file, int64_t value, size_t *sz)
 
     // Pack the value.
     minipack_pack_int(data, value, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -1070,7 +1078,7 @@ void minipack_pack_nil(void *ptr, size_t *sz)
 void minipack_fread_nil(FILE *file, size_t *sz)
 {
     uint8_t data[NIL_SIZE];
-    
+
     // If element cannot be read then exit.
     if(fread(data, NIL_SIZE, 1, file) != 1 || !minipack_is_nil(data)) {
         *sz = 0;
@@ -1092,13 +1100,13 @@ int minipack_fwrite_nil(FILE *file, size_t *sz)
 
     // Pack the value.
     minipack_pack_nil(data, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -1179,7 +1187,7 @@ bool minipack_unpack_bool(void *ptr, size_t *sz)
 void minipack_pack_bool(void *ptr, bool value, size_t *sz)
 {
     *sz = BOOL_SIZE;
-    
+
     if(value) {
         *((uint8_t*)ptr) = TRUE_TYPE;
     }
@@ -1198,7 +1206,7 @@ void minipack_pack_bool(void *ptr, bool value, size_t *sz)
 bool minipack_fread_bool(FILE *file, size_t *sz)
 {
     uint8_t data[BOOL_SIZE];
-    
+
     // If element cannot be read then exit.
     if(fread(data, BOOL_SIZE, 1, file) != 1 || !minipack_is_bool(data)) {
         *sz = 0;
@@ -1221,13 +1229,13 @@ int minipack_fwrite_bool(FILE *file, bool value, size_t *sz)
 
     // Pack the value.
     minipack_pack_bool(data, value, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -1269,7 +1277,7 @@ bool minipack_is_float(void *ptr)
 float minipack_unpack_float(void *ptr, size_t *sz)
 {
     *sz = FLOAT_SIZE;
-    
+
     // Cast bytes to int32 to use ntohl.
     uint32_t value = *((uint32_t*)(ptr+1));
     value = ntohl(value);
@@ -1283,7 +1291,7 @@ float minipack_unpack_float(void *ptr, size_t *sz)
 void minipack_pack_float(void *ptr, float value, size_t *sz)
 {
     *sz = FLOAT_SIZE;
-    
+
     uint32_t *bytes_ptr = (uint32_t*)&value;
     uint32_t bytes = *bytes_ptr;
     bytes = htonl(bytes);
@@ -1303,7 +1311,7 @@ void minipack_pack_float(void *ptr, float value, size_t *sz)
 float minipack_fread_float(FILE *file, size_t *sz)
 {
     uint8_t data[FLOAT_SIZE];
-    
+
     // If element cannot be read or element is not a float then exit.
     if(fread(data, FLOAT_SIZE, 1, file) != 1 || !minipack_is_float(data)) {
         *sz = 0;
@@ -1326,13 +1334,13 @@ int minipack_fwrite_float(FILE *file, float value, size_t *sz)
 
     // Pack the value.
     minipack_pack_float(data, value, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -1368,7 +1376,7 @@ bool minipack_is_double(void *ptr)
 double minipack_unpack_double(void *ptr, size_t *sz)
 {
     *sz = DOUBLE_SIZE;
-    
+
     // Cast bytes to int64 to use ntohll.
     uint64_t value = *((uint64_t*)(ptr+1));
     value = ntohll(value);
@@ -1382,7 +1390,7 @@ double minipack_unpack_double(void *ptr, size_t *sz)
 void minipack_pack_double(void *ptr, double value, size_t *sz)
 {
     *sz = DOUBLE_SIZE;
-    
+
     uint64_t *bytes_ptr = (uint64_t*)&value;
     uint64_t bytes = htonll(*bytes_ptr);
     *((uint8_t*)ptr)    = DOUBLE_TYPE;
@@ -1400,7 +1408,7 @@ void minipack_pack_double(void *ptr, double value, size_t *sz)
 double minipack_fread_double(FILE *file, size_t *sz)
 {
     uint8_t data[DOUBLE_SIZE];
-    
+
     // If element cannot be read or element is not a double then exit.
     if(fread(data, DOUBLE_SIZE, 1, file) != 1 || !minipack_is_double(data)) {
         *sz = 0;
@@ -1423,13 +1431,13 @@ int minipack_fwrite_double(FILE *file, double value, size_t *sz)
 
     // Pack the value.
     minipack_pack_double(data, value, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -1545,7 +1553,7 @@ void minipack_pack_raw(void *ptr, uint32_t length, size_t *sz)
 uint32_t minipack_fread_raw(FILE *file, size_t *sz)
 {
     uint8_t data[RAW32_SIZE];
-    
+
     // If first byte cannot be read then exit.
     if(fread(data, sizeof(uint8_t), 1, file) != 1) {
         *sz = 0;
@@ -1578,13 +1586,13 @@ int minipack_fwrite_raw(FILE *file, uint32_t length, size_t *sz)
 
     // Pack the element.
     minipack_pack_raw(data, length, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -1806,7 +1814,7 @@ void minipack_pack_array(void *ptr, uint32_t count, size_t *sz)
 uint32_t minipack_fread_array(FILE *file, size_t *sz)
 {
     uint8_t data[ARRAY32_SIZE];
-    
+
     // If first byte cannot be read then exit.
     if(fread(data, sizeof(uint8_t), 1, file) != 1) {
         *sz = 0;
@@ -1839,13 +1847,13 @@ int minipack_fwrite_array(FILE *file, uint32_t length, size_t *sz)
 
     // Pack the element.
     minipack_pack_array(data, length, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -1917,7 +1925,7 @@ uint16_t minipack_unpack_array16(void *ptr, size_t *sz)
 void minipack_pack_array16(void *ptr, uint16_t count, size_t *sz)
 {
     *sz = ARRAY16_SIZE;
-    
+
     // Write header.
     *((uint8_t*)ptr)      = ARRAY16_TYPE;
     *((uint16_t*)(ptr+1)) = htons(count);
@@ -1955,7 +1963,7 @@ uint32_t minipack_unpack_array32(void *ptr, size_t *sz)
 void minipack_pack_array32(void *ptr, uint32_t count, size_t *sz)
 {
     *sz = ARRAY32_SIZE;
-    
+
     // Write header.
     *((uint8_t*)ptr)      = ARRAY32_TYPE;
     *((uint32_t*)(ptr+1)) = htonl(count);
@@ -2071,7 +2079,7 @@ void minipack_pack_map(void *ptr, uint32_t count, size_t *sz)
 uint32_t minipack_fread_map(FILE *file, size_t *sz)
 {
     uint8_t data[MAP32_SIZE];
-    
+
     // If first byte cannot be read then exit.
     if(fread(data, sizeof(uint8_t), 1, file) != 1) {
         *sz = 0;
@@ -2104,13 +2112,13 @@ int minipack_fwrite_map(FILE *file, uint32_t length, size_t *sz)
 
     // Pack the element.
     minipack_pack_map(data, length, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -2182,7 +2190,7 @@ uint16_t minipack_unpack_map16(void *ptr, size_t *sz)
 void minipack_pack_map16(void *ptr, uint16_t count, size_t *sz)
 {
     *sz = MAP16_SIZE;
-    
+
     // Write header.
     *((uint8_t*)ptr)      = MAP16_TYPE;
     *((uint16_t*)(ptr+1)) = htons(count);
@@ -2220,11 +2228,8 @@ uint32_t minipack_unpack_map32(void *ptr, size_t *sz)
 void minipack_pack_map32(void *ptr, uint32_t count, size_t *sz)
 {
     *sz = MAP32_SIZE;
-    
+
     // Write header.
     *((uint8_t*)ptr)      = MAP32_TYPE;
     *((uint32_t*)(ptr+1)) = htonl(count);
 }
-
-
-
