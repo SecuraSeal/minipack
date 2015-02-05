@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 #define MSGPACK_VERSION_MAJOR    5
-#define MSGPACK_VERSION_MINOR    2
+#define MSGPACK_VERSION_MINOR    7
 
 
 //==============================================================================
