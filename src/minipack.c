@@ -1291,13 +1291,13 @@ float minipack_unpack_float(void *ptr, size_t *sz)
 void minipack_pack_float(void *ptr, float value, size_t *sz)
 {
     *sz = FLOAT_SIZE;
-
-    uint32_t *bytes_ptr = (uint32_t*)&value;
-    uint32_t bytes = *bytes_ptr;
-    bytes = htonl(bytes);
-    *((uint8_t*)ptr)   = FLOAT_TYPE;
-    float *float_ptr = (float*)&bytes;
-    *((float*)(ptr+1)) = *float_ptr;
+    uint8_t *buffer = ptr;
+    uint32_t *value_ptr = (uint32_t*)&value;
+    uint32_t bytes = htonl(*value_ptr);
+    buffer[0] = FLOAT_TYPE;
+    buffer = buffer + 1;
+    
+    memcpy(buffer, &bytes, 4);
 }
 
 
@@ -1390,12 +1390,14 @@ double minipack_unpack_double(void *ptr, size_t *sz)
 void minipack_pack_double(void *ptr, double value, size_t *sz)
 {
     *sz = DOUBLE_SIZE;
-
-    uint64_t *bytes_ptr = (uint64_t*)&value;
-    uint64_t bytes = htonll(*bytes_ptr);
-    *((uint8_t*)ptr)    = DOUBLE_TYPE;
-    double *double_ptr = (double*)&bytes;
-    *((double*)(ptr+1)) = *double_ptr;
+    uint8_t *buffer = ptr;
+    uint64_t *value_ptr = (uint64_t*)&value;
+    uint64_t valueBytes = htonll(*value_ptr);
+    
+    buffer[0] = DOUBLE_TYPE;
+    buffer = buffer + 1;
+    
+    memcpy(buffer, &valueBytes, 8);
 }
 
 // Reads and unpacks a double from a file stream. If the element at the
