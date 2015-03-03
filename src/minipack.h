@@ -192,7 +192,7 @@ void minipack_pack_int64(void *ptr, int64_t value, size_t *sz);
 // Nil
 //======================================
 
-size_t minipack_sizeof_nil();
+size_t minipack_sizeof_nil(void);
 
 bool minipack_is_nil(void *ptr);
 
@@ -215,7 +215,7 @@ int minipack_fwrite_nil(FILE *file, size_t *sz);
 // Bool
 //======================================
 
-size_t minipack_sizeof_bool();
+size_t minipack_sizeof_bool(void);
 
 bool minipack_is_bool(void *ptr);
 
@@ -242,7 +242,7 @@ int minipack_fwrite_bool(FILE *file, bool value, size_t *sz);
 // Float
 //======================================
 
-size_t minipack_sizeof_float();
+size_t minipack_sizeof_float(void);
 
 bool minipack_is_float(void *ptr);
 
@@ -259,7 +259,7 @@ int minipack_fwrite_float(FILE *file, float value, size_t *sz);
 // Double
 //======================================
 
-size_t minipack_sizeof_double();
+size_t minipack_sizeof_double(void);
 
 bool minipack_is_double(void *ptr);
 

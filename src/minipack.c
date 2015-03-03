@@ -1030,7 +1030,6 @@ void minipack_pack_int64(void *ptr, int64_t value, size_t *sz)
 // Retrieves the size, in bytes, of how large an element will be.
 //
 // Returns the number of bytes needed for the element.
-size_t minipack_sizeof_nil(void);
 
 size_t minipack_sizeof_nil()
 {
@@ -1123,7 +1122,7 @@ int minipack_fwrite_nil(FILE *file, size_t *sz)
 // Retrieves the size, in bytes, of how large an element will be.
 //
 // Returns the number of bytes needed for the element.
-size_t minipack_sizeof_bool(void);
+
 size_t minipack_sizeof_bool()
 {
     return BOOL_SIZE;
@@ -1252,7 +1251,6 @@ int minipack_fwrite_bool(FILE *file, bool value, size_t *sz)
 // Retrieves the size, in bytes, of how large an element will be.
 //
 // Returns the number of bytes needed for the element.
-size_t minipack_sizeof_float(void);
 size_t minipack_sizeof_float()
 {
     return FLOAT_SIZE;
@@ -1351,7 +1349,7 @@ int minipack_fwrite_float(FILE *file, float value, size_t *sz)
 // Retrieves the size, in bytes, of how large an element will be.
 //
 // Returns the number of bytes needed for the element.
-size_t minipack_sizeof_double(void);
+
 size_t minipack_sizeof_double()
 {
     return DOUBLE_SIZE;
