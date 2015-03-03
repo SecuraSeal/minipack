@@ -40,6 +40,8 @@ void minipack_pack_pos_fixnum(void *ptr, uint8_t value, size_t *sz);
 // Negative Fixnum
 //======================================
 
+bool minipack_is_neg_fixnum(void *ptr);
+
 int8_t minipack_unpack_neg_fixnum(void *ptr, size_t *sz);
 
 void minipack_pack_neg_fixnum(void *ptr, int8_t value, size_t *sz);
@@ -179,7 +181,6 @@ bool minipack_is_int64(void *ptr);
 int64_t minipack_unpack_int64(void *ptr, size_t *sz);
 
 void minipack_pack_int64(void *ptr, int64_t value, size_t *sz);
-
 
 //==============================================================================
 //

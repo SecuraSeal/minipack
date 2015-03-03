@@ -293,7 +293,6 @@ void minipack_pack_pos_fixnum(void *ptr, uint8_t value, size_t *sz)
 // ptr - A pointer to the element.
 //
 // Returns true if the element is a negative fixnum, otherwise returns false.
-bool minipack_is_neg_fixnum(void *ptr);
 
 bool minipack_is_neg_fixnum(void *ptr)
 {
