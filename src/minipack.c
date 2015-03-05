@@ -171,17 +171,6 @@
 
 #include <sys/types.h>
 
-#ifndef BYTE_ORDER
-#if defined(linux) || defined(__linux__)
-# include <endian.h>
-#else
-# include <machine/endian.h>
-#endif
-#endif
-
-#if !defined(BYTE_ORDER) && !defined(__BYTE_ORDER)
-#error "Undefined byte order"
-#endif
 uint64_t bswap64(uint64_t value);
 
 uint64_t bswap64(uint64_t value)
