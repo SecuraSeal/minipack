@@ -1,5 +1,6 @@
 #ifdef LOCK_HW
 #include "common.h"
+#define ENABLE_FLOAT 0
 #endif /* LOCK_HW */
 
 #include "minipack.h"
@@ -9,6 +10,10 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #endif /* !LOCK_HW */
+
+#ifndef ENABLE_FLOAT
+#define ENABLE_FLOAT 1
+#endif
 
 //==============================================================================
 //
@@ -232,9 +237,11 @@ size_t minipack_sizeof_elem_and_data(void *ptr)
     sz = minipack_sizeof_uint_elem(ptr);
     if(sz > 0) return sz;
 
+#if ENABLE_FLOAT
     // Float & Double
     if(minipack_is_float(ptr)) return minipack_sizeof_float();
     if(minipack_is_double(ptr)) return minipack_sizeof_double();
+#endif
 
     // Nil & Boolean.
     if(minipack_is_nil(ptr)) return minipack_sizeof_nil();
@@ -243,7 +250,7 @@ size_t minipack_sizeof_elem_and_data(void *ptr)
     // Binary
     uint32_t length = minipack_unpack_bin(ptr, &sz);
     if(sz > 0) return sz + length;
-    
+
     // String
     length = minipack_unpack_str(ptr, &sz);
     if(sz > 0) return sz + length;
@@ -1251,6 +1258,7 @@ int minipack_fwrite_bool(FILE *file, bool value, size_t *sz)
 }
 
 
+#if ENABLE_FLOAT
 //==============================================================================
 //
 // Floating-point
@@ -1306,7 +1314,7 @@ void minipack_pack_float(void *ptr, float value, size_t *sz)
     uint32_t bytes = htonl(*value_ptr);
     buffer[0] = FLOAT_TYPE;
     buffer = buffer + 1;
-    
+
     memcpy(buffer, &bytes, 4);
 }
 
@@ -1403,10 +1411,10 @@ void minipack_pack_double(void *ptr, double value, size_t *sz)
     uint8_t *buffer = ptr;
     uint64_t *value_ptr = (uint64_t*)&value;
     uint64_t valueBytes = htonll(*value_ptr);
-    
+
     buffer[0] = DOUBLE_TYPE;
     buffer = buffer + 1;
-    
+
     memcpy(buffer, &valueBytes, 8);
 }
 
@@ -1452,7 +1460,7 @@ int minipack_fwrite_double(FILE *file, double value, size_t *sz)
 
     return 0;
 }
-
+#endif /* ENABLE_FLOAT */
 
 
 //==============================================================================
@@ -1574,7 +1582,7 @@ void minipack_pack_str(void *ptr, uint32_t length, size_t *sz)
 uint32_t minipack_fread_str(FILE *file, size_t *sz)
 {
     uint8_t data[STR32_SIZE];
-    
+
     // If first byte cannot be read then exit.
     if(fread(data, sizeof(uint8_t), 1, file) != 1) {
         *sz = 0;
@@ -1608,7 +1616,7 @@ int minipack_fwrite_str(FILE *file, uint32_t length, size_t *sz)
     // Pack the element.
 
     minipack_pack_str(data, length, sz);
-    
+
     // If the data cannot be written to file then return an error.
     if(fwrite(data, *sz, 1, file) != 1) {
         *sz = 0;
@@ -1793,7 +1801,7 @@ size_t minipack_sizeof_bin(uint32_t length)
     else if(length <= BIN16_MAXSIZE) {
         return BIN16_SIZE;
     }
-    
+
     return BIN32_SIZE;
 }
 
