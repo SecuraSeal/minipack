@@ -1683,7 +1683,7 @@ bool minipack_is_str8(void *ptr)
 uint8_t minipack_unpack_str8(void *ptr, size_t *sz)
 {
     *sz = STR8_SIZE;
-    return *((uint8_t*)(ptr+1));
+    return ((uint8_t*)ptr)[1];
 }
 
 // Writes a str 8 byte array to a given memory address.
@@ -1890,7 +1890,7 @@ bool minipack_is_bin8(void *ptr)
 uint8_t minipack_unpack_bin8(void *ptr, size_t *sz)
 {
     *sz = BIN8_SIZE;
-    return *((uint8_t*)(ptr+1));
+    return ((uint8_t*)ptr)[1];
 }
 
 // Writes a bin 8 byte array to a given memory address.
