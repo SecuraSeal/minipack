@@ -1,15 +1,16 @@
-#ifdef LOCK_HW
+#if defined(TYTO) && defined(MAIN_BOARD)
 #include "common.h"
 #define ENABLE_FLOAT 0
-#endif /* LOCK_HW */
+#define TYTO_HW
+#endif
 
 #include "minipack.h"
 #include <string.h>
 
-#ifndef LOCK_HW
+#ifndef TYTO_HW
 #include <sys/types.h>
 #include <arpa/inet.h>
-#endif /* !LOCK_HW */
+#endif /* !TYTO_HW */
 
 #ifndef ENABLE_FLOAT
 #define ENABLE_FLOAT 1
@@ -187,7 +188,7 @@
 #define MAP32_MAXSIZE           4294967295
 
 
-#ifndef LOCK_HW
+#ifndef TYTO_HW
 //==============================================================================
 //
 // Byte Order
@@ -211,7 +212,7 @@ uint64_t bswap64(uint64_t value)
         ((value & 0xFF00000000000000) >> 56)
     );
 }
-#endif /* LOCK_HW */
+#endif /* !TYTO_HW */
 
 
 //==============================================================================
