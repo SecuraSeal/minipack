@@ -1,6 +1,7 @@
 #if defined(TYTO) && defined(MAIN_BOARD)
 #include "common.h"
 #define ENABLE_FLOAT 0
+#define ENABLE_INT64 0
 #define TYTO_HW
 #endif
 
@@ -14,6 +15,9 @@
 
 #ifndef ENABLE_FLOAT
 #define ENABLE_FLOAT 1
+#endif
+#ifndef ENABLE_INT64
+#define ENABLE_INT64 1
 #endif
 
 //==============================================================================
@@ -62,9 +66,10 @@
 #define UINT32_TYPE             0xCE
 #define UINT32_SIZE             5
 
+#if ENABLE_INT64
 #define UINT64_TYPE             0xCF
 #define UINT64_SIZE             9
-
+#endif
 
 //--------------------------------------
 // Signed integers
@@ -79,9 +84,10 @@
 #define INT32_TYPE              0xD2
 #define INT32_SIZE              5
 
+#if ENABLE_INT64
 #define INT64_TYPE              0xD3
 #define INT64_SIZE              9
-
+#endif
 
 //--------------------------------------
 // Nil
@@ -188,7 +194,7 @@
 #define MAP32_MAXSIZE           4294967295
 
 
-#ifndef TYTO_HW
+#if ENABLE_INT64
 //==============================================================================
 //
 // Byte Order
@@ -212,7 +218,7 @@ uint64_t bswap64(uint64_t value)
         ((value & 0xFF00000000000000) >> 56)
     );
 }
-#endif /* !TYTO_HW */
+#endif /* ENABLE_INT64 */
 
 
 //==============================================================================
@@ -374,9 +380,11 @@ size_t minipack_sizeof_uint(uint64_t value)
     else if(value <= UINT32_MAX) {
         return UINT32_SIZE;
     }
+#if ENABLE_INT64
     else if(value <= UINT64_MAX) {
         return UINT64_SIZE;
     }
+#endif
 
     return 0;
 }
@@ -401,9 +409,11 @@ size_t minipack_sizeof_uint_elem(void *ptr)
     else if(minipack_is_uint32(ptr)) {
         return UINT32_SIZE;
     }
+#if ENABLE_INT64
     else if(minipack_is_uint64(ptr)) {
         return UINT64_SIZE;
     }
+#endif
     else {
         return 0;
     }
@@ -429,9 +439,11 @@ uint64_t minipack_unpack_uint(void *ptr, size_t *sz)
     else if(minipack_is_uint32(ptr)) {
         return (uint64_t)minipack_unpack_uint32(ptr, sz);
     }
+#if ENABLE_INT64
     else if(minipack_is_uint64(ptr)) {
         return minipack_unpack_uint64(ptr, sz);
     }
+#endif
     else {
         *sz = 0;
         return 0;
@@ -457,9 +469,11 @@ void minipack_pack_uint(void *ptr, uint64_t value, size_t *sz)
     else if(value <= UINT32_MAX) {
         minipack_pack_uint32(ptr, (uint32_t)value, sz);
     }
+#if ENABLE_INT64
     else if(value <= UINT64_MAX) {
         minipack_pack_uint64(ptr, value, sz);
     }
+#endif
     else {
         *sz = 0;
     }
@@ -635,6 +649,7 @@ void minipack_pack_uint32(void *ptr, uint32_t value, size_t *sz)
 }
 
 
+#if ENABLE_INT64
 //--------------------------------------
 // Unsigned Int (64-bit)
 //--------------------------------------
@@ -672,7 +687,7 @@ void minipack_pack_uint64(void *ptr, uint64_t value, size_t *sz)
     *((uint8_t*)ptr)      = UINT64_TYPE;
     *((uint64_t*)(ptr+1)) = htonll(value);
 }
-
+#endif
 
 //==============================================================================
 //
@@ -706,10 +721,11 @@ size_t minipack_sizeof_int(int64_t value)
     else if(value >= INT32_MIN && value <= INT32_MAX) {
         return INT32_SIZE;
     }
+#if ENABLE_INT64
     else if(value >= INT64_MIN && value <= INT64_MAX) {
         return INT64_SIZE;
     }
-
+#endif
     return 0;
 }
 
@@ -736,9 +752,11 @@ size_t minipack_sizeof_int_elem(void *ptr)
     else if(minipack_is_int32(ptr)) {
         return INT32_SIZE;
     }
+#if ENABLE_INT64
     else if(minipack_is_int64(ptr)) {
         return INT64_SIZE;
     }
+#endif
     // Fallback to unsigned ints.
     else if(minipack_is_uint8(ptr)) {
         return UINT8_SIZE;
@@ -749,9 +767,11 @@ size_t minipack_sizeof_int_elem(void *ptr)
     else if(minipack_is_uint32(ptr)) {
         return UINT32_SIZE;
     }
+#if ENABLE_INT64
     else if(minipack_is_uint64(ptr)) {
         return UINT64_SIZE;
     }
+#endif
     else {
         return 0;
     }
@@ -780,9 +800,11 @@ int64_t minipack_unpack_int(void *ptr, size_t *sz)
     else if(minipack_is_int32(ptr)) {
         return (int64_t)minipack_unpack_int32(ptr, sz);
     }
+#if ENABLE_INT64
     else if(minipack_is_int64(ptr)) {
         return minipack_unpack_int64(ptr, sz);
     }
+#endif
     // Fallback to unsigned ints.
     else if(minipack_is_uint8(ptr)) {
         return (int64_t)minipack_unpack_uint8(ptr, sz);
@@ -793,9 +815,11 @@ int64_t minipack_unpack_int(void *ptr, size_t *sz)
     else if(minipack_is_uint32(ptr)) {
         return (int64_t)minipack_unpack_uint32(ptr, sz);
     }
+#if ENABLE_INT64
     else if(minipack_is_uint64(ptr)) {
         return minipack_unpack_uint64(ptr, sz);
     }
+#endif
     else {
         *sz = 0;
         return 0;
@@ -824,9 +848,11 @@ void minipack_pack_int(void *ptr, int64_t value, size_t *sz)
     else if(value >= INT32_MIN && value <= INT32_MAX) {
         minipack_pack_int32(ptr, (int32_t)value, sz);
     }
+#if ENABLE_INT64
     else if(value >= INT64_MIN && value <= INT64_MAX) {
         minipack_pack_int64(ptr, value, sz);
     }
+#endif
     else {
         *sz = 0;
     }
@@ -1000,6 +1026,7 @@ void minipack_pack_int32(void *ptr, int32_t value, size_t *sz)
 }
 
 
+#if ENABLE_INT64
 //--------------------------------------
 // Signed Int (64-bit)
 //--------------------------------------
@@ -1036,6 +1063,7 @@ void minipack_pack_int64(void *ptr, int64_t value, size_t *sz)
     *((uint8_t*)ptr)     = INT64_TYPE;
     *((int64_t*)(ptr+1)) = htonll(value);
 }
+#endif
 
 
 //==============================================================================
