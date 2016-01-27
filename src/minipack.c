@@ -227,6 +227,14 @@ uint64_t bswap64(uint64_t value)
 
 #endif
 
+// On linux, htonll is not defined
+
+#ifndef htonll
+
+    #define htonll(d) (uint64_t)bswap64(d)
+
+#endif
+
 #endif /* ENABLE_INT64 */
 
 
