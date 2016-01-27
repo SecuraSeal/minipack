@@ -218,6 +218,15 @@ uint64_t bswap64(uint64_t value)
         ((value & 0xFF00000000000000) >> 56)
     );
 }
+
+// On linux, ntohll is not defined.
+
+#ifndef ntohll
+
+    #define ntohll(d) (uint64_t)bswap_64(d)
+
+#endif
+
 #endif /* ENABLE_INT64 */
 
 
