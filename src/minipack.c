@@ -223,7 +223,7 @@ uint64_t bswap64(uint64_t value)
 
 #ifndef ntohll
 
-    #define ntohll(d) (uint64_t)bswap_64(d)
+    #define ntohll(d) (uint64_t)bswap64(d)
 
 #endif
 
